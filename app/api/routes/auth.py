@@ -5,7 +5,6 @@ from app.database.session import get_db
 from app.schemas import UserRegister, UserResponse
 from app.services.auth_service import register_user
 
-from app.core.security import create_access_token
 from app.schemas import (
     TokenResponse,
     UserLogin,
@@ -13,14 +12,10 @@ from app.schemas import (
     UserResponse,
 )
 
-from app.services.auth_service import (
-    authenticate_user,
-    register_user,
-)
-
 from typing import Annotated
 
 from fastapi.security import OAuth2PasswordRequestForm
+from app.services.auth_service import login_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -44,37 +39,13 @@ async def register(
             detail=str(e),
         )
 
-@router.post(
-    "/login",
-    response_model=TokenResponse,
-)
+@router.post("/login")
 async def login(
-    form_data: Annotated[
-        OAuth2PasswordRequestForm,
-        Depends(),
-    ],
+    form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ):
-    try:
-        login_data = UserLogin(
-            email=form_data.username,
-            password=form_data.password,
-        )
-
-        user = await authenticate_user(db, login_data)
-
-        access_token = create_access_token(
-            subject=str(user.id),
-        )
-
-        return TokenResponse(
-            access_token=access_token,
-            token_type="bearer",
-        )
-
-    except ValueError as error:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(error),
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from error
+    return await login_user(
+        db,
+        email=form_data.username,
+        password=form_data.password,
+    )
