@@ -185,12 +185,37 @@ async def refresh_access_token(
     ):
         raise ValueError("Invalid refresh token")
 
+    # Old refresh token revoke karo
+    stored_token.revoked_at = datetime.now(timezone.utc)
+
+    # New access token
     new_access_token = create_access_token(
         subject=str(user_id),
     )
 
+    # New refresh token
+    new_refresh_token, new_jti, new_expires_at = (
+        create_refresh_token(
+            subject=str(user_id),
+        )
+    )
+
+    # New refresh-token session DB me save karo
+    new_stored_token = RefreshToken(
+        user_id=int(user_id),
+        jti=new_jti,
+        token_hash=hash_token(new_refresh_token),
+        expires_at=new_expires_at,
+    )
+
+    db.add(new_stored_token)
+
+    # Old revoke aur new insert ek saath commit honge
+    await db.commit()
+
     return {
         "access_token": new_access_token,
+        "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }
 
