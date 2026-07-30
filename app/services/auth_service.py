@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import or_, select
+from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import (
@@ -236,3 +236,25 @@ async def logout_user(
     stored_token.revoked_at = datetime.now(timezone.utc)
 
     await db.commit()
+
+async def logout_all_devices(
+    db: AsyncSession,
+    *,
+    user_id: int,
+) -> int:
+    revoked_at = datetime.now(timezone.utc)
+
+    result = await db.execute(
+        update(RefreshToken)
+        .where(
+            RefreshToken.user_id == user_id,
+            RefreshToken.revoked_at.is_(None),
+        )
+        .values(
+            revoked_at=revoked_at,
+        )
+    )
+
+    await db.commit()
+
+    return result.rowcount or 0

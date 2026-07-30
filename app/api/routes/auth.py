@@ -8,9 +8,13 @@ from app.schemas.user import RefreshTokenRequest
 from app.services.auth_service import (
     login_user,
     logout_user,
+    logout_all_devices,
     refresh_access_token,
     register_user,
 )
+from app.api.dependencies import get_current_user
+from app.models import User
+
 
 router = APIRouter(
     prefix="/auth",
@@ -95,3 +99,18 @@ async def logout(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),
         ) from exc
+
+@router.post("/logout-all")
+async def logout_all(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    revoked_sessions = await logout_all_devices(
+        db,
+        user_id=current_user.id,
+    )
+
+    return {
+        "message": "Logged out from all devices",
+        "revoked_sessions": revoked_sessions,
+    }
