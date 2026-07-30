@@ -7,6 +7,7 @@ from app.schemas import UserRegister, UserResponse
 from app.schemas.user import RefreshTokenRequest
 from app.services.auth_service import (
     login_user,
+    logout_user,
     refresh_access_token,
     register_user,
 )
@@ -65,6 +66,26 @@ async def refresh_token(
 ):
     try:
         return await refresh_access_token(
+            db,
+            token=token_data.refresh_token,
+        )
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        ) from exc
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def logout(
+    token_data: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        await logout_user(
             db,
             token=token_data.refresh_token,
         )

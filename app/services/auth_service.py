@@ -193,3 +193,46 @@ async def refresh_access_token(
         "access_token": new_access_token,
         "token_type": "bearer",
     }
+
+async def logout_user(
+    db: AsyncSession,
+    *,
+    token: str,
+) -> None:
+    payload = decode_refresh_token(token)
+
+    user_id = payload.get("sub")
+    jti = payload.get("jti")
+
+    if not user_id:
+        raise ValueError("Refresh token missing subject")
+
+    if not jti:
+        raise ValueError("Refresh token missing jti")
+
+    result = await db.execute(
+        select(RefreshToken).where(
+            RefreshToken.jti == jti,
+        )
+    )
+
+    stored_token = result.scalar_one_or_none()
+
+    if stored_token is None:
+        raise ValueError("Refresh session not found")
+
+    if stored_token.user_id != int(user_id):
+        raise ValueError("Invalid refresh token owner")
+
+    if not verify_token_hash(
+        token,
+        stored_token.token_hash,
+    ):
+        raise ValueError("Invalid refresh token")
+
+    if stored_token.revoked_at is not None:
+        raise ValueError("Refresh token has already been revoked")
+
+    stored_token.revoked_at = datetime.now(timezone.utc)
+
+    await db.commit()
