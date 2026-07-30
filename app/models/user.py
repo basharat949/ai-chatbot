@@ -1,9 +1,14 @@
 from datetime import date, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
+
+if TYPE_CHECKING:
+    from app.models.chat import Chat
+    from app.models.refresh_token import RefreshToken
 
 
 class User(Base):
@@ -46,8 +51,14 @@ class User(Base):
         nullable=False,
     )
 
-    refresh_tokens = relationship(
-    "RefreshToken",
-    back_populates="user",
-    cascade="all, delete-orphan",
-)
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
+        "RefreshToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    chats: Mapped[list["Chat"]] = relationship(
+        "Chat",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
