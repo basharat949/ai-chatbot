@@ -18,6 +18,10 @@ from app.services.auth_service import (
     register_user,
 )
 
+from typing import Annotated
+
+from fastapi.security import OAuth2PasswordRequestForm
+
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
@@ -40,16 +44,23 @@ async def register(
             detail=str(e),
         )
 
-
 @router.post(
     "/login",
     response_model=TokenResponse,
 )
 async def login(
-    login_data: UserLogin,
+    form_data: Annotated[
+        OAuth2PasswordRequestForm,
+        Depends(),
+    ],
     db: AsyncSession = Depends(get_db),
 ):
     try:
+        login_data = UserLogin(
+            email=form_data.username,
+            password=form_data.password,
+        )
+
         user = await authenticate_user(db, login_data)
 
         access_token = create_access_token(
@@ -65,4 +76,5 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(error),
+            headers={"WWW-Authenticate": "Bearer"},
         ) from error
