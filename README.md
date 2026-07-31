@@ -282,13 +282,30 @@ git clone https://github.com/your-username/cryptomind-ai.git
 
 cd cryptomind-ai
 
-python -m venv .venv
+## Install dependencies
 
+```bash
+uv sync
+```
+
+## Activate the virtual environment
+
+### Linux / macOS
+
+```bash
 source .venv/bin/activate
+```
 
-pip install -r requirements.txt
+### Windows (PowerShell)
 
-uvicorn app.main:app --reload
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+## Start the development server
+
+```bash
+uv run uvicorn app.main:app --reload
 ```
 
 ---
