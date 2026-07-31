@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 
-app = FastAPI(
-    title="AI Chatbot Backend",
-    version="1.0.0",
-)
+from app.api.routes import auth, users, chats
+
+app = FastAPI(title="AI Chatbot Backend")
+
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(chats.router)
 
 
 @app.get("/health")
-async def health_check() -> dict[str, str]:
-    return {
-        "status": "ok",
-        "message": "AI Chatbot Backend is running",
-    }
+async def health_check():
+    return {"status": "healthy"}
