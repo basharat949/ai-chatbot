@@ -282,9 +282,6 @@ git clone https://github.com/your-username/cryptomind-ai.git
 
 cd cryptomind-ai
 
-## Install dependencies
-
-```bash
 uv sync
 ```
 
