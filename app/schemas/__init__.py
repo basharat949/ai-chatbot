@@ -4,3 +4,4 @@ from app.schemas.user import (
     UserRegister,
     UserResponse,
 )
+from app.schemas.chat import ChatCreate, ChatResponse
