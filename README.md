@@ -262,9 +262,9 @@ This project follows modern backend engineering practices.
 # 🚀 Getting Started
 
 ```bash
-git clone https://github.com/your-username/cryptomind-ai.git
+git clone https://github.com/basharat949/ai-chatbot.git
 
-cd cryptomind-ai
+cd ai-chatbot
 
 uv sync
 ```
