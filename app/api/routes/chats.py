@@ -24,10 +24,17 @@ async def create_chat(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ChatResponse:
+    title = chat_data.title
+
+    if title is None or not title.strip() or title.strip() == "{}":
+        title = "New Chat"
+    else:
+        title = title.strip()
+
     chat = await ChatService.create_chat(
         db=db,
         user_id=current_user.id,
-        title=chat_data.title or "New Chat",
+        title=title,
     )
 
     return chat
