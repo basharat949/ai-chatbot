@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from app.api.routes import auth, users, chats, messages
 
-app = FastAPI(title="AI Chatbot Backend")
+app = FastAPI(title="CryptoMind AI Backend")
 
 app.include_router(auth.router)
 app.include_router(users.router)

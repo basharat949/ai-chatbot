@@ -1,33 +1,41 @@
-from langchain.messages import AIMessage
+from langchain.messages import AIMessage, HumanMessage, SystemMessage
 
 from app.agents.state import CryptoAgentState
+from app.llms.provider import get_llm
+
+
+SYSTEM_PROMPT = """
+You are CryptoMind AI, an evidence-focused cryptocurrency research assistant.
+
+Your responsibilities:
+- Explain crypto and blockchain concepts clearly.
+- Distinguish facts from assumptions.
+- Never guarantee profits or financial returns.
+- State when current market data or external evidence is unavailable.
+- Keep the response useful, accurate, and professionally structured.
+
+At this stage, you do not have live market tools or document retrieval.
+Do not pretend that you accessed live prices, news, whitepapers, or external sources.
+"""
 
 
 async def generate_answer(
     state: CryptoAgentState,
 ) -> dict:
-    """
-    Temporary answer-generation node.
+    llm = get_llm()
 
-    Current responsibility:
-    - Read the user's original query from graph state.
-    - Generate a temporary assistant response.
-    - Append an AIMessage to the messages state.
-
-    Later this node will call Gemini or Groq through
-    the configured LLM provider.
-    """
-
-    original_query = state["original_query"]
-
-    response = (
-        "Hello! I am CryptoMind AI. "
-        f"I received your question: {original_query}. "
-        "This is a temporary LangGraph response. "
+    response = await llm.ainvoke(
+        [
+            SystemMessage(content=SYSTEM_PROMPT),
+            HumanMessage(content=state["original_query"]),
+        ]
     )
 
+    if not isinstance(response, AIMessage):
+        raise RuntimeError(
+            "Gemini did not return a valid AIMessage"
+        )
+
     return {
-        "messages": [
-            AIMessage(content=response),
-        ],
+        "messages": [response],
     }

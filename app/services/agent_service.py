@@ -4,8 +4,6 @@ from app.agents.graph import crypto_agent
 
 
 class AgentService:
-    """Provide the application-facing interface to the compiled AI workflow."""
-
     @staticmethod
     async def run(
         *,
@@ -13,8 +11,6 @@ class AgentService:
         chat_id: int,
         query: str,
     ) -> str:
-        """Run the LangGraph workflow and return its final assistant response."""
-
         result = await crypto_agent.ainvoke(
             {
                 "messages": [
@@ -40,9 +36,11 @@ class AgentService:
                 "Agent did not return a valid assistant message"
             )
 
-        if not isinstance(final_message.content, str):
+        assistant_text = final_message.text
+
+        if not assistant_text.strip():
             raise RuntimeError(
-                "Assistant response content must be a string"
+                "Agent returned an empty assistant response"
             )
 
-        return final_message.content
+        return assistant_text
