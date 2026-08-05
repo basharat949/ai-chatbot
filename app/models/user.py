@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
 
 class User(Base):
+    """Represent an authenticated user and their application-owned resources."""
+
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)

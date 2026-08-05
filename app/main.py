@@ -12,4 +12,6 @@ app.include_router(messages.router)
 
 @app.get("/health")
 async def health_check():
+    """Report whether the API process is available to serve requests."""
+
     return {"status": "healthy"}

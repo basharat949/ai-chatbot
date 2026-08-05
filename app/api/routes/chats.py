@@ -24,6 +24,8 @@ async def create_chat(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ChatResponse:
+    """Create a chat for the current user with a normalized title."""
+
     title = chat_data.title
 
     if title is None or not title.strip() or title.strip() == "{}":
@@ -48,6 +50,8 @@ async def get_user_chats(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Return all chats owned by the current user."""
+
     return await ChatService.get_user_chats(
         db=db,
         user_id=current_user.id,
@@ -63,6 +67,8 @@ async def get_chat_by_id(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Return a specific chat owned by the current user."""
+
     chat = await ChatService.get_chat_by_id(
         db=db,
         chat_id=chat_id,
@@ -87,6 +93,8 @@ async def update_chat(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Update the title of a chat owned by the current user."""
+
     chat = await ChatService.get_chat_by_id(
         db=db,
         chat_id=chat_id,
@@ -114,6 +122,8 @@ async def delete_chat(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Delete a chat owned by the current user."""
+
     chat = await ChatService.get_chat_by_id(
         db=db,
         chat_id=chat_id,
@@ -129,4 +139,4 @@ async def delete_chat(
     await ChatService.delete_chat(
         db=db,
         chat=chat,
-    )  
+    )

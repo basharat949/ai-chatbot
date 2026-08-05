@@ -21,6 +21,8 @@ async def get_me(
         Depends(get_current_user),
     ],
 ):
+    """Return the public profile of the currently authenticated user."""
+
     return current_user
 
 current_user: Annotated[

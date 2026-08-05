@@ -31,6 +31,8 @@ async def register(
     user_data: UserRegister,
     db: AsyncSession = Depends(get_db),
 ):
+    """Register a user account and return its public profile."""
+
     try:
         return await register_user(
             db,
@@ -49,6 +51,8 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ):
+    """Authenticate form credentials and return a bearer token pair."""
+
     try:
         return await login_user(
             db,
@@ -68,6 +72,8 @@ async def refresh_token(
     token_data: RefreshTokenRequest,
     db: AsyncSession = Depends(get_db),
 ):
+    """Rotate a valid refresh token and issue a new token pair."""
+
     try:
         return await refresh_access_token(
             db,
@@ -88,6 +94,8 @@ async def logout(
     token_data: RefreshTokenRequest,
     db: AsyncSession = Depends(get_db),
 ):
+    """Revoke the refresh-token session submitted by the client."""
+
     try:
         await logout_user(
             db,
@@ -105,6 +113,8 @@ async def logout_all(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    """Revoke every active refresh-token session for the current user."""
+
     revoked_sessions = await logout_all_devices(
         db,
         user_id=current_user.id,

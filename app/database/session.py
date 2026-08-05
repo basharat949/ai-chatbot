@@ -22,5 +22,7 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """Yield a database session and close it after the request completes."""
+
     async with AsyncSessionLocal() as session:
         yield session

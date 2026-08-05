@@ -24,6 +24,8 @@ async def register_user(
     db: AsyncSession,
     user_data: UserRegister,
 ) -> User:
+    """Validate account uniqueness and persist a new user with a hashed password."""
+
     result = await db.execute(
         select(User).where(
             or_(
@@ -59,6 +61,8 @@ async def authenticate_user(
     db: AsyncSession,
     login_data: UserLogin,
 ) -> User:
+    """Authenticate an active user with their email address and password."""
+
     result = await db.execute(
         select(User).where(
             User.email == login_data.email,
@@ -90,6 +94,8 @@ async def save_refresh_token(
     jti: str,
     expires_at: datetime,
 ) -> RefreshToken:
+    """Hash and persist a refresh token as a revocable session."""
+
     refresh_token = RefreshToken(
         user_id=user_id,
         token_hash=hash_token(token),
@@ -110,6 +116,8 @@ async def login_user(
     email: str,
     password: str,
 ) -> dict[str, str]:
+    """Authenticate a user and issue a persisted access and refresh token pair."""
+
     login_data = UserLogin(
         email=email,
         password=password,
@@ -148,6 +156,8 @@ async def refresh_access_token(
     *,
     token: str,
 ) -> dict[str, str]:
+    """Validate and rotate a refresh token, returning a new token pair."""
+
     payload = decode_refresh_token(token)
 
     user_id = payload.get("sub")
@@ -185,7 +195,7 @@ async def refresh_access_token(
     ):
         raise ValueError("Invalid refresh token")
 
-    # Old refresh token revoke karo
+    # Revoke the old refresh token
     stored_token.revoked_at = datetime.now(timezone.utc)
 
     # New access token
@@ -200,7 +210,7 @@ async def refresh_access_token(
         )
     )
 
-    # New refresh-token session DB me save karo
+    # Save the new refresh-token session in the database
     new_stored_token = RefreshToken(
         user_id=int(user_id),
         jti=new_jti,
@@ -210,7 +220,7 @@ async def refresh_access_token(
 
     db.add(new_stored_token)
 
-    # Old revoke aur new insert ek saath commit honge
+    # Commit the old token revocation and the new token insertion together
     await db.commit()
 
     return {
@@ -224,6 +234,8 @@ async def logout_user(
     *,
     token: str,
 ) -> None:
+    """Validate and revoke the refresh-token session supplied by the user."""
+
     payload = decode_refresh_token(token)
 
     user_id = payload.get("sub")
@@ -267,6 +279,8 @@ async def logout_all_devices(
     *,
     user_id: int,
 ) -> int:
+    """Revoke all active refresh-token sessions owned by a user."""
+
     revoked_at = datetime.now(timezone.utc)
 
     result = await db.execute(

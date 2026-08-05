@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
 
 class Chat(Base):
+    """Persist a user-owned conversation and its associated messages."""
+
     __tablename__ = "chats"
 
     id: Mapped[int] = mapped_column(

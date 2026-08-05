@@ -15,6 +15,8 @@ password_hash = PasswordHash.recommended()
 # ------------------------
 
 def hash_password(password: str) -> str:
+    """Create a secure, salted hash for a plaintext password."""
+
     return password_hash.hash(password)
 
 
@@ -22,6 +24,8 @@ def verify_password(
     plain_password: str,
     hashed_password: str,
 ) -> bool:
+    """Check a plaintext password against its stored hash."""
+
     return password_hash.verify(
         plain_password,
         hashed_password,
@@ -36,6 +40,8 @@ def create_access_token(
     subject: str,
     expires_delta: timedelta | None = None,
 ) -> str:
+    """Create a signed access token for a subject with a configurable lifetime."""
+
     expire = datetime.now(timezone.utc) + (
         expires_delta
         or timedelta(
@@ -63,6 +69,8 @@ def create_access_token(
 def create_refresh_token(
     subject: str,
 ) -> tuple[str, str, datetime]:
+    """Create a signed refresh token and return its identifier and expiry time."""
+
     expire = datetime.now(timezone.utc) + timedelta(
         days=settings.refresh_token_expire_days,
     )
@@ -90,6 +98,8 @@ def create_refresh_token(
 # ------------------------
 
 def decode_token(token: str) -> dict:
+    """Decode and validate a signed token, normalizing JWT errors for callers."""
+
     try:
         return jwt.decode(
             token,
@@ -114,6 +124,8 @@ def decode_token(token: str) -> dict:
 def decode_access_token(
     token: str,
 ) -> dict:
+    """Decode a token and require it to contain an access-token claim."""
+
     payload = decode_token(token)
 
     if payload.get("type") != "access":
@@ -129,6 +141,8 @@ def decode_access_token(
 def decode_refresh_token(
     token: str,
 ) -> dict:
+    """Decode a token and require valid refresh-token type and identifier claims."""
+
     payload = decode_token(token)
 
     if payload.get("type") != "refresh":
@@ -147,6 +161,8 @@ def decode_refresh_token(
 def hash_token(
     token: str,
 ) -> str:
+    """Create a secure hash for storing a refresh token safely."""
+
     return password_hash.hash(token)
 
 
@@ -154,6 +170,8 @@ def verify_token_hash(
     plain_token: str,
     token_hash: str,
 ) -> bool:
+    """Check a plaintext refresh token against its stored hash."""
+
     return password_hash.verify(
         plain_token,
         token_hash,

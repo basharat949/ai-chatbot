@@ -7,6 +7,8 @@ from app.database.base import Base
 
 
 class RefreshToken(Base):
+    """Track a hashed refresh-token session for rotation and revocation."""
+
     __tablename__ = "refresh_tokens"
 
     id: Mapped[int] = mapped_column(

@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 
 
 class Message(Base):
+    """Persist a single role-based message within a chat conversation."""
+
     __tablename__ = "messages"
 
     id: Mapped[int] = mapped_column(

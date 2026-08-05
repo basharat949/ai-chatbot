@@ -5,12 +5,16 @@ from app.models.chat import Chat
 
 
 class ChatService:
+    """Provide persistence operations for user-owned chat records."""
+
     @staticmethod
     async def create_chat(
         db: AsyncSession,
         user_id: int,
         title: str,
     ) -> Chat:
+        """Create and persist a chat for the specified user."""
+
         chat = Chat(
             user_id=user_id,
             title=title,
@@ -27,6 +31,8 @@ class ChatService:
         db: AsyncSession,
         user_id: int,
     ) -> list[Chat]:
+        """Return a user's chats ordered by most recent activity."""
+
         result = await db.execute(
             select(Chat)
             .where(Chat.user_id == user_id)
@@ -41,6 +47,8 @@ class ChatService:
         chat_id: int,
         user_id: int,
     ) -> Chat | None:
+        """Return a chat only when it exists and belongs to the specified user."""
+
         result = await db.execute(
             select(Chat).where(
                 Chat.id == chat_id,
@@ -56,6 +64,8 @@ class ChatService:
         chat: Chat,
         title: str,
     ) -> Chat:
+        """Update and persist the title of an existing chat."""
+
         chat.title = title
 
         await db.commit()
@@ -68,5 +78,7 @@ class ChatService:
         db: AsyncSession,
         chat: Chat,
     ) -> None:
+        """Delete a chat and commit the transaction."""
+
         await db.delete(chat)
         await db.commit()
