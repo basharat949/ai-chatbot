@@ -5,4 +5,8 @@ from app.schemas.user import (
     UserResponse,
 )
 from app.schemas.chat import ChatCreate, ChatResponse
-from app.schemas.message import MessageCreate, MessageResponse
+from app.schemas.message import (
+    ConversationResponse,
+    MessageCreate,
+    MessageResponse,
+)

@@ -1,3 +1,5 @@
+from typing import Literal
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chat import Chat
@@ -5,23 +7,35 @@ from app.models.message import Message
 from app.services.title_service import TitleService
 
 
+MessageRole = Literal[
+    "user",
+    "assistant",
+    "system",
+]
+
+
 class MessageService:
+    """Coordinate message persistence and fallback chat-title generation."""
+
     @staticmethod
-    async def create_user_message(
+    async def save_message(
         db: AsyncSession,
         *,
         chat: Chat,
+        role: MessageRole,
         content: str,
     ) -> Message:
+        """Persist a message and initialize the chat title when appropriate."""
+
         message = Message(
             chat_id=chat.id,
-            role="user",
+            role=role,
             content=content,
         )
 
         db.add(message)
 
-        if not chat.title or chat.title in {"New Chat", "{}"}:
+        if role == "user" and chat.title == "New Chat":
             chat.title = TitleService.generate_fallback_title(
                 content,
             )

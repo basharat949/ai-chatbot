@@ -4,7 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import get_current_user
 from app.database.session import get_db
 from app.models.user import User
-from app.schemas.message import MessageCreate, MessageResponse
+from app.schemas.message import (
+    ConversationResponse,
+    MessageCreate,
+)
+from app.services.agent_service import AgentService
 from app.services.chat_service import ChatService
 from app.services.message_service import MessageService
 
@@ -17,7 +21,7 @@ router = APIRouter(
 
 @router.post(
     "/{chat_id}/messages",
-    response_model=MessageResponse,
+    response_model=ConversationResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_message(
@@ -25,7 +29,10 @@ async def create_message(
     message_data: MessageCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-):
+) -> ConversationResponse:
+    """Persist a user message, run the agent, and persist its response."""
+
+    # 1. Verify that the chat exists and belongs to the user
     chat = await ChatService.get_chat_by_id(
         db=db,
         chat_id=chat_id,
@@ -38,8 +45,31 @@ async def create_message(
             detail="Chat not found",
         )
 
-    return await MessageService.create_user_message(
+    # 2. Save the user message
+    user_message = await MessageService.save_message(
         db=db,
         chat=chat,
+        role="user",
         content=message_data.content,
+    )
+
+    # 3. Run the LangGraph agent
+    assistant_content = await AgentService.run(
+        user_id=current_user.id,
+        chat_id=chat.id,
+        query=message_data.content,
+    )
+
+    # 4. Save the assistant message
+    assistant_message = await MessageService.save_message(
+        db=db,
+        chat=chat,
+        role="assistant",
+        content=assistant_content,
+    )
+
+    # 5. Return both messages to the frontend
+    return ConversationResponse(
+        user_message=user_message,
+        assistant_message=assistant_message,
     )
