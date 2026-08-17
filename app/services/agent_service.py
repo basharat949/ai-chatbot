@@ -1,9 +1,39 @@
-from langchain_core.messages import AIMessage, BaseMessage
+from collections.abc import AsyncIterator
+
+from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
 
 from app.agents.graph import crypto_agent
 
 
 class AgentService:
+    @staticmethod
+    async def stream(
+        *,
+        user_id: int,
+        chat_id: int,
+        messages: list[BaseMessage],
+        query: str,
+    ) -> AsyncIterator[str]:
+        async for message_chunk, metadata in crypto_agent.astream(
+            {
+                "messages": messages,
+                "user_id": user_id,
+                "chat_id": chat_id,
+                "original_query": query,
+            },
+            stream_mode="messages",
+        ):
+            if metadata.get("langgraph_node") != "generate_answer":
+                continue
+
+            if not isinstance(message_chunk, AIMessageChunk):
+                continue
+
+            chunk_text = message_chunk.text
+
+            if chunk_text:
+                yield chunk_text
+
     @staticmethod
     async def run(
         *,
