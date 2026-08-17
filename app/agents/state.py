@@ -12,3 +12,5 @@ class CryptoAgentState(MessagesState):
     user_id: int
     chat_id: int
     original_query: str
+    token_symbol: str | None
+    coingecko_id: str | None
