@@ -25,15 +25,17 @@ router = APIRouter(
     response_model=ConversationResponse,
     status_code=status.HTTP_201_CREATED,
 )
+@router.post(
+    "/{chat_id}/messages",
+    response_model=ConversationResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_message(
     chat_id: int,
     message_data: MessageCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> ConversationResponse:
-    """Persist a user message, run the agent, and persist its response."""
-
-    # 1. Verify that the chat exists and belongs to the user
+):
     chat = await ChatService.get_chat_by_id(
         db=db,
         chat_id=chat_id,
@@ -46,7 +48,6 @@ async def create_message(
             detail="Chat not found",
         )
 
-    # 2. Save the user message
     user_message = await MessageService.save_message(
         db=db,
         chat=chat,
@@ -54,14 +55,22 @@ async def create_message(
         content=message_data.content,
     )
 
-    # 3. Run the LangGraph agent
+    db_messages = await MessageService.get_chat_messages(
+        db=db,
+        chat_id=chat.id,
+    )
+
+    langchain_messages = MessageService.to_langchain_messages(
+        db_messages
+    )
+
     assistant_content = await AgentService.run(
         user_id=current_user.id,
         chat_id=chat.id,
+        messages=langchain_messages,
         query=message_data.content,
     )
 
-    # 4. Save the assistant message
     assistant_message = await MessageService.save_message(
         db=db,
         chat=chat,
@@ -69,7 +78,6 @@ async def create_message(
         content=assistant_content,
     )
 
-    # 5. Return both messages to the frontend
     return ConversationResponse(
         user_message=user_message,
         assistant_message=assistant_message,

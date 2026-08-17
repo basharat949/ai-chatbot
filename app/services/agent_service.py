@@ -1,4 +1,4 @@
-from langchain.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, BaseMessage
 
 from app.agents.graph import crypto_agent
 
@@ -9,13 +9,12 @@ class AgentService:
         *,
         user_id: int,
         chat_id: int,
+        messages: list[BaseMessage],
         query: str,
     ) -> str:
         result = await crypto_agent.ainvoke(
             {
-                "messages": [
-                    HumanMessage(content=query),
-                ],
+                "messages": messages,
                 "user_id": user_id,
                 "chat_id": chat_id,
                 "original_query": query,

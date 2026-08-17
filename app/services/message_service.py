@@ -7,6 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.chat import Chat
 from app.models.message import Message
 from app.services.title_service import TitleService
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+)
 
 
 MessageRole = Literal[
@@ -64,3 +69,21 @@ class MessageService:
     )
 
         return list(result.scalars().all())
+
+    @staticmethod
+    def to_langchain_messages(
+    messages: list[Message],
+    ) -> list[BaseMessage]:
+        langchain_messages: list[BaseMessage] = []
+        for message in messages:
+            if message.role == "user":
+                langchain_messages.append(
+                    HumanMessage(content=message.content)
+                )
+
+            elif message.role == "assistant":
+                langchain_messages.append(
+                    AIMessage(content=message.content)
+                )
+
+        return langchain_messages

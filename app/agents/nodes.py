@@ -1,4 +1,7 @@
-from langchain.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import (
+    AIMessage,
+    SystemMessage,
+)
 
 from app.agents.state import CryptoAgentState
 from app.llms.provider import get_llm
@@ -27,7 +30,7 @@ async def generate_answer(
     response = await llm.ainvoke(
         [
             SystemMessage(content=SYSTEM_PROMPT),
-            HumanMessage(content=state["original_query"]),
+            *state["messages"],
         ]
     )
 
