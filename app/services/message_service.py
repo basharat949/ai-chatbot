@@ -1,17 +1,16 @@
 from typing import Literal
-from unittest import result
 
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chat import Chat
 from app.models.message import Message
 from app.services.title_service import TitleService
-from langchain_core.messages import (
-    AIMessage,
-    BaseMessage,
-    HumanMessage,
-)
 
 
 MessageRole = Literal[
@@ -60,21 +59,22 @@ class MessageService:
         chat_id: int,
     ) -> list[Message]:
         result = await db.execute(
-        select(Message)
-        .where(Message.chat_id == chat_id)
-        .order_by(
-            Message.created_at.asc(),
-            Message.id.asc(),
+            select(Message)
+            .where(Message.chat_id == chat_id)
+            .order_by(
+                Message.created_at.asc(),
+                Message.id.asc(),
+            )
         )
-    )
 
         return list(result.scalars().all())
 
     @staticmethod
     def to_langchain_messages(
-    messages: list[Message],
+        messages: list[Message],
     ) -> list[BaseMessage]:
         langchain_messages: list[BaseMessage] = []
+
         for message in messages:
             if message.role == "user":
                 langchain_messages.append(
@@ -87,3 +87,26 @@ class MessageService:
                 )
 
         return langchain_messages
+
+    @staticmethod
+    async def get_recent_chat_messages(
+        db: AsyncSession,
+        *,
+        chat_id: int,
+        limit: int,
+    ) -> list[Message]:
+        result = await db.execute(
+            select(Message)
+            .where(Message.chat_id == chat_id)
+            .order_by(
+                Message.created_at.desc(),
+                Message.id.desc(),
+            )
+            .limit(limit)
+        )
+
+        messages = list(result.scalars().all())
+
+        messages.reverse()
+
+        return messages

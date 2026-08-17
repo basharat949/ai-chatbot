@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     groq_model: str = "openai/gpt-oss-120b"
     google_api_key: str
     gemini_model: str = "gemini-2.5-flash"
+    chat_history_limit: int = 20
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user
+from app.core.config import settings
 from app.database.session import get_db
 from app.models.user import User
 from app.schemas.message import (
     ConversationResponse,
     MessageCreate,
-    MessageResponse 
+    MessageResponse,
 )
 from app.services.agent_service import AgentService
 from app.services.chat_service import ChatService
@@ -20,11 +21,6 @@ router = APIRouter(
 )
 
 
-@router.post(
-    "/{chat_id}/messages",
-    response_model=ConversationResponse,
-    status_code=status.HTTP_201_CREATED,
-)
 @router.post(
     "/{chat_id}/messages",
     response_model=ConversationResponse,
@@ -55,13 +51,14 @@ async def create_message(
         content=message_data.content,
     )
 
-    db_messages = await MessageService.get_chat_messages(
+    recent_messages = await MessageService.get_recent_chat_messages(
         db=db,
         chat_id=chat.id,
+        limit=settings.chat_history_limit,
     )
 
     langchain_messages = MessageService.to_langchain_messages(
-        db_messages
+        recent_messages
     )
 
     assistant_content = await AgentService.run(
