@@ -1,5 +1,7 @@
 from typing import Literal
+from unittest import result
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chat import Chat
@@ -45,3 +47,20 @@ class MessageService:
         await db.refresh(chat)
 
         return message
+
+    @staticmethod
+    async def get_chat_messages(
+        db: AsyncSession,
+        *,
+        chat_id: int,
+    ) -> list[Message]:
+        result = await db.execute(
+        select(Message)
+        .where(Message.chat_id == chat_id)
+        .order_by(
+            Message.created_at.asc(),
+            Message.id.asc(),
+        )
+    )
+
+        return list(result.scalars().all())
